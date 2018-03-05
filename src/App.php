@@ -1,5 +1,7 @@
 <?php
 
+namespace LFG\App;
+
 /**
  * Class App Mock
  *

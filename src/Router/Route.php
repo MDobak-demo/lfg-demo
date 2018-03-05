@@ -1,5 +1,9 @@
 <?php
 
+namespace LFG\App\Router;
+
+use LFG\App\App;
+
 class Route {
     private $routes  = array();
     private $actions = array();

@@ -1,5 +1,9 @@
 <?php
 
+namespace Tests\App\Router;
+
+use LFG\App\Router\Route;
+
 class RouteTest extends \PHPUnit\Framework\TestCase
 {
     /**
