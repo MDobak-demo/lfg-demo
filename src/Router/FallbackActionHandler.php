@@ -32,6 +32,8 @@ class FallbackActionHandler implements ActionHandlerInterface
             throw GivenClassDoNotExistsException::create($action);
         }
 
+        // Note: It works only on static classes beacuse i want to make code compatible with given App::run_action
+        // method but it will be very easy to inject some dependency injection provider to this class.
         return function () use ($className, $method) { return call_user_func([$className, $method]); };
     }
 }
