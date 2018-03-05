@@ -13,6 +13,7 @@ class Route {
         return self::$instance;
     }
 
+    // This should be private if we want use singleton pattern :)
     public function __construct()
     {
     }

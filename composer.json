@@ -1,0 +1,17 @@
+{
+    "name": "mdobak/lfg",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    },
+    "authors": [
+        {
+            "name": "Michal Dobaczewski",
+            "email": "mdobak@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "files": ["Route.php", "App.php", "functions.php"]
+    }
+}
