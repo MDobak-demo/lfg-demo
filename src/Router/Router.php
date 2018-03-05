@@ -3,6 +3,7 @@
 namespace LFG\App\Router;
 
 use LFG\App\App;
+use LFG\App\Router\Exception\UnsupportedActionException;
 
 /**
  * Class Route
@@ -20,26 +21,49 @@ class Router
     private $routesOrdered = true;
 
     /**
-     * @param string   $route
+     * @var ActionHandlerInterface[]
+     */
+    private $actionHandlers = [];
+
+    /**
+     * @param ActionHandlerInterface $actionHandler
+     */
+    public function registerActionHandler(ActionHandlerInterface $actionHandler)
+    {
+        $this->actionHandlers[] = $actionHandler;
+    }
+
+    /**
+     * @param string   $path
      * @param callable $callback
      */
-    public function bindFunction(string $route, callable $callback)
+    public function bindFunction(string $path, callable $callback)
     {
-        $this->routes[] = new Route($route, '', $callback);
+        $this->routes[] = new Route($path, '', $callback);
         $this->routesOrdered = false;
     }
 
     /**
-     * @param string $route
+     * @param string $path
      * @param string $action
+     *
+     * @throws UnsupportedActionException
      */
-    public function bindAction(string $route, string $action)
+    public function bindAction(string $path, string $action)
     {
-        $callback = function () use ($action) {
-            return App::run_action($action);
-        };
+        $callback = null;
 
-        $this->routes[] = new Route($route, $action, $callback);
+        foreach ($this->actionHandlers as $handler) {
+            if ($handler->supportAction($action)) {
+                $callback = $handler->getCallableForAction($path, $action);
+            }
+        }
+
+        if (null === $callback) {
+            throw UnsupportedActionException::create($action);
+        }
+
+        $this->routes[] = new Route($path, $action, $callback);
         $this->routesOrdered = false;
     }
 

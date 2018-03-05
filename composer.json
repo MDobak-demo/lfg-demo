@@ -14,5 +14,8 @@
     "autoload": {
         "psr-4": {"LFG\\App\\": "src"},
         "files": ["functions.php"]
+    },
+    "autoload-dev": {
+        "psr-4": { "Tests\\": "tests/" }
     }
 }

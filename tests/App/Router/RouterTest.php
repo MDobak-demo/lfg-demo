@@ -2,6 +2,7 @@
 
 namespace Tests\App\Router;
 
+use LFG\App\Router\ActionHandlerInterface;
 use LFG\App\Router\Router;
 
 class RouterTest extends \PHPUnit\Framework\TestCase
@@ -16,6 +17,25 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         parent::__construct($name, $data, $dataName);
 
         $this->router = new Router();
+        $this->router->registerActionHandler(
+            new class implements ActionHandlerInterface {
+                /**
+                 * @inheritDoc
+                 */
+                public function supportAction(string $action): bool
+                {
+                    return substr($action, 0, 7) === 'action_';
+                }
+
+                /**
+                 * @inheritDoc
+                 */
+                public function getCallableForAction(string $path, string $action): callable
+                {
+                    return function () use ($action) { return $action; };
+                }
+            }
+        );
 
         $this->router->bindAction('/p1', 'action_p1');
         $this->router->bindAction('/p2', 'action_p2');
@@ -44,6 +64,17 @@ class RouterTest extends \PHPUnit\Framework\TestCase
 
         // Regexp should't work
         $this->assertNotSame('action_p2_regexp', $result->getRoute()->getAction());
+    }
+
+    public function testFindValidRouteWithAction()
+    {
+        $result = $this->router->findRoute('p1');
+
+        $this->assertSame('p1', $result->getRoute()->getPath());
+        $this->assertSame('action_p1', $result->getRoute()->getAction());
+        $this->assertSame('', $result->getQuery());
+        $this->assertTrue(is_callable($result->getRoute()->getCallback()));
+        $this->assertSame('action_p1', $result->getRoute()->getCallback()());
     }
 
     public function testFindValidRouteWithCallable()
@@ -83,5 +114,13 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $result = $this->router->findRoute('/p1');
 
         $this->assertNull($result);
+    }
+
+    /**
+     * @expectedException \LFG\App\Router\Exception\UnsupportedActionException
+     */
+    public function testIfThrowExceptionWithInvalidAction()
+    {
+        $this->router->bindAction('/invalid', 'invalid');
     }
 }
