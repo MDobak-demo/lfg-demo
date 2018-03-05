@@ -1,33 +1,23 @@
 <?php
-class Route {
-    private static $instance = null;
 
+class Route {
     private $routes  = array();
     private $actions = array();
 
-    public static function get_instance()
-    {
-        if(!self::$instance){
-            self::$instance = new Route();
-        }
-        return self::$instance;
-    }
-
-    // This should be private if we want use singleton pattern :)
     public function __construct()
     {
     }
 
-    private static function reorder_routes()
+    private function reorder_routes()
     {
-        usort(self::get_instance()->routes, function($a, $b){
+        usort($this->routes, function($a, $b){
             return mb_strlen($a['route']) < mb_strlen($b['route']);
         });
     }
 
-    public static function bind_function($route, $callback)
+    public function bind_function($route, $callback)
     {
-        self::get_instance()->routes[] = array(
+        $this->routes[] = array(
             'route'     => trim($route, '/'),
             'action'    => '',
             'query'     => '',
@@ -37,28 +27,28 @@ class Route {
         self::reorder_routes();
     }
 
-    public static function bind_action($route, $action)
+    public function bind_action($route, $action)
     {
         $Callback = function() use ($action)
         {
             return App::run_action($action);
         };
 
-        self::get_instance()->routes[] = array(
+        $this->routes[] = array(
             'route'     => trim($route, '/'),
             'action'    => $action,
             'query'     => '',
             'callback'  => $Callback,
         );
 
-        self::get_instance()->actions[$action] = ltrim($route, '/');
+        $this->actions[$action] = ltrim($route, '/');
 
         self::reorder_routes();
     }
 
-    public static function find_route($query)
+    public function find_route($query)
     {
-        foreach(self::get_instance()->routes as $Item){
+        foreach($this->routes as $Item){
             $qr = preg_quote($Item['route']);
 
             if(preg_match('#^'. $qr .'(/.*?)?$#uis', ($qr == '' ? '/' : '') . $query, $Match)){
@@ -69,16 +59,16 @@ class Route {
         return null;
     }
 
-    public static function find_action_url($action)
+    public function find_action_url($action)
     {
-        if(isset(self::get_instance()->actions[$action])){
-            return self::get_instance()->actions[$action];
+        if(isset($this->actions[$action])){
+            return $this->actions[$action];
         }
 
         return '';
     }
 
-    public static function redirect($link = "")
+    public function redirect($link = "")
     {
         if($link == ""){
             Header("Location: ". $_SERVER['REQUEST_URI']);
