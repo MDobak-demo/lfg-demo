@@ -10,14 +10,9 @@ use LFG\App\App;
 class Router
 {
     /**
-     * @var array
+     * @var Route[]
      */
     private $routes = [];
-
-    /**
-     * @var array
-     */
-    private $actions = [];
 
     /**
      * @var bool
@@ -30,13 +25,7 @@ class Router
      */
     public function bindFunction(string $route, callable $callback)
     {
-        $this->routes[] = [
-            'route'    => trim($route, '/'),
-            'action'   => '',
-            'query'    => '',
-            'callback' => $callback,
-        ];
-
+        $this->routes[] = new Route($route, '', $callback);
         $this->routesOrdered = false;
     }
 
@@ -46,37 +35,30 @@ class Router
      */
     public function bindAction(string $route, string $action)
     {
-        $Callback = function () use ($action) {
+        $callback = function () use ($action) {
             return App::run_action($action);
         };
 
-        $this->routes[] = [
-            'route'    => trim($route, '/'),
-            'action'   => $action,
-            'query'    => '',
-            'callback' => $Callback,
-        ];
-
-        $this->actions[$action] = ltrim($route, '/');
+        $this->routes[] = new Route($route, $action, $callback);
         $this->routesOrdered = false;
     }
 
     /**
      * @param string $query
      *
-     * @return mixed|null
+     * @return MatchedRoute|null
      */
-    public function findRoute(string $query)
+    public function findRoute(string $query): ?MatchedRoute
     {
         self::reorderRoutes();
 
-        foreach ($this->routes as $Item) {
-            $qr = preg_quote($Item['route']);
+        foreach ($this->routes as $route) {
+            $qr = preg_quote($route->getPath());
 
-            if (preg_match('#^'.$qr.'(/.*?)?$#uis', ($qr == '' ? '/' : '').$query, $Match)) {
-                $Item['query'] = isset($Match[1]) ? trim($Match[1], '/') : '';
+            if (preg_match('#^'.$qr.'(/.*?)?$#uis', ($qr == '' ? '/' : '').$query, $match)) {
+                $query = isset($match[1]) ? trim($match[1], '/') : '';
 
-                return $Item;
+                return new MatchedRoute($route, $query);
             }
         }
 
@@ -86,12 +68,16 @@ class Router
     /**
      * @param string $action
      *
-     * @return mixed|string
+     * @return string
+     *
+     * @todo: It will be better to return null instead of empty string if route is not founded
      */
-    public function findActionUrl(string $action)
+    public function findActionUrl(string $action): string
     {
-        if (isset($this->actions[$action])) {
-            return $this->actions[$action];
+        foreach ($this->routes as $route) {
+            if ($route->getAction() === $action && $route->getAction()) {
+                return $route->getPath();
+            }
         }
 
         return '';
@@ -105,8 +91,8 @@ class Router
 
         usort(
             $this->routes,
-            function ($a, $b) {
-                return mb_strlen($a['route']) < mb_strlen($b['route']);
+            function (Route $a, Route $b) {
+                return mb_strlen($a->getPath()) < mb_strlen($b->getPath());
             }
         );
     }

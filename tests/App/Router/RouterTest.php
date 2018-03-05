@@ -31,11 +31,11 @@ class RouterTest extends \PHPUnit\Framework\TestCase
     {
         $result = $this->router->findRoute('p1');
 
-        $this->assertSame('p1', $result['route']);
-        $this->assertSame('action_p1', $result['action']);
-        $this->assertSame('', $result['query']);
-        $this->assertTrue(is_callable($result['callback']));
-        $this->assertSame('action_p1', $result['callback']());
+        $this->assertSame('p1', $result->getRoute()->getPath());
+        $this->assertSame('action_p1', $result->getRoute()->getAction());
+        $this->assertSame('', $result->getQuery());
+        $this->assertTrue(is_callable($result->getRoute()->getCallback()));
+        $this->assertSame('action_p1', $result->getRoute()->getCallback()());
     }
 
     public function testFindRouteWithRegexp()
@@ -43,18 +43,18 @@ class RouterTest extends \PHPUnit\Framework\TestCase
         $result = $this->router->findRoute('p2/something');
 
         // Regexp should't work
-        $this->assertNotSame('action_p2_regexp', $result['action']);
+        $this->assertNotSame('action_p2_regexp', $result->getRoute()->getAction());
     }
 
     public function testFindValidRouteWithCallable()
     {
         $result = $this->router->findRoute('p3');
 
-        $this->assertSame('p3', $result['route']);
-        $this->assertSame('', $result['action']);
-        $this->assertSame('', $result['query']);
-        $this->assertTrue(is_callable($result['callback']));
-        $this->assertSame('p3', $result['callback']());
+        $this->assertSame('p3', $result->getRoute()->getPath());
+        $this->assertSame('', $result->getRoute()->getAction());
+        $this->assertSame('', $result->getQuery());
+        $this->assertTrue(is_callable($result->getRoute()->getCallback()));
+        $this->assertSame('p3', $result->getRoute()->getCallback()());
     }
 
     public function testFindInvalid()
@@ -75,7 +75,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase
     {
         $result = $this->router->findRoute('p4/a/b');
 
-        $this->assertSame('action_p4_longer', $result['action']);
+        $this->assertSame('action_p4_longer', $result->getRoute()->getAction());
     }
 
     public function testFailOnRouteWithLeadingSlash()

@@ -17,7 +17,7 @@ function url(string $url)
  *
  * @todo PSR-7 compliant response object should be used instead of this
  */
-public function redirect(string $link = "")
+function redirect(string $link = "")
 {
     if ($link == "") {
         header("Location: ".$_SERVER['REQUEST_URI']);
