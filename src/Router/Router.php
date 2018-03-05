@@ -20,6 +20,11 @@ class Router
     private $actions = [];
 
     /**
+     * @var bool
+     */
+    private $routesOrdered = true;
+
+    /**
      * @param string   $route
      * @param callable $callback
      */
@@ -32,7 +37,7 @@ class Router
             'callback' => $callback,
         ];
 
-        self::reorderRoutes();
+        $this->routesOrdered = false;
     }
 
     /**
@@ -53,8 +58,7 @@ class Router
         ];
 
         $this->actions[$action] = ltrim($route, '/');
-
-        self::reorderRoutes();
+        $this->routesOrdered = false;
     }
 
     /**
@@ -64,6 +68,8 @@ class Router
      */
     public function findRoute(string $query)
     {
+        self::reorderRoutes();
+
         foreach ($this->routes as $Item) {
             $qr = preg_quote($Item['route']);
 
@@ -91,21 +97,12 @@ class Router
         return '';
     }
 
-    /**
-     * @param string $link
-     */
-    public function redirect(string $link = "")
-    {
-        if ($link == "") {
-            Header("Location: ".$_SERVER['REQUEST_URI']);
-        } else {
-            Header("Location: ".url($link));
-        }
-        exit();
-    }
-
     private function reorderRoutes()
     {
+        if ($this->routesOrdered) {
+            return;
+        }
+
         usort(
             $this->routes,
             function ($a, $b) {
